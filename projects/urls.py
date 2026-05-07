@@ -10,7 +10,7 @@ urlpatterns = [
     path("<int:pk>/edit/", views.ProjectUpdateView.as_view(), name="project_edit"),
 
     path("<int:pk>/toggle-favorite/", views.ToggleFavoriteView.as_view(), name="toggle_favorite"),
-    path("<int:pk>/toggle-participate/", views.ToggleParticipateView.as_view()),
-    path("<int:pk>/complete/", views.CompleteProjectView.as_view()),
+    path("<int:pk>/toggle-participate/", views.ToggleParticipateView.as_view(), name="toggle_participate"),
+    path("<int:pk>/complete/", views.CompleteProjectView.as_view(), name="complete_project"),
     path("favorites/", views.FavoriteProjectsView.as_view(), name="favorites"),
 ]
