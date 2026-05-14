@@ -1,19 +1,44 @@
-from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, PermissionsMixin, BaseUserManager
-from django.core.validators import RegexValidator
-from django.utils import timezone
-from PIL import Image, ImageDraw, ImageFont
-import random
-import os
 from io import BytesIO
-from django.core.files.base import ContentFile
+import random
+
+from django.contrib.auth.models import (
+    AbstractBaseUser,
+    BaseUserManager,
+    PermissionsMixin,
+)
 from django.core.exceptions import ValidationError
+from django.core.files.base import ContentFile
+from django.db import models
+from django.utils import timezone
+
+from PIL import Image, ImageDraw, ImageFont
+
+from core.constants import (
+    AVATAR_BACKGROUND_COLORS,
+    AVATAR_FILE_TEMPLATE,
+    AVATAR_TEXT_COLOR,
+    DEFAULT_AVATAR_FONT_SIZE,
+    DEFAULT_AVATAR_SIZE,
+    MAX_ABOUT_LENGTH,
+    MAX_NAME_LENGTH,
+    MAX_PHONE_LENGTH,
+    MAX_SURNAME_LENGTH,
+    PHONE_EXISTS_ERROR,
+)
+from core.validators import github_validator, phone_validator
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, surname, password=None, **extra_fields):
+    def create_user(
+        self,
+        email,
+        name,
+        surname,
+        password=None,
+        **extra_fields,
+    ):
         if not email:
-            raise ValueError("Email is required")
+            raise ValueError("Email обязателен")
 
         email = self.normalize_email(email)
 
@@ -21,18 +46,32 @@ class UserManager(BaseUserManager):
             email=email,
             name=name,
             surname=surname,
-            **extra_fields
+            **extra_fields,
         )
 
         user.set_password(password)
         user.save()
+
         return user
 
-    def create_superuser(self, email, name, surname, password=None, **extra_fields):
+    def create_superuser(
+        self,
+        email,
+        name,
+        surname,
+        password=None,
+        **extra_fields,
+    ):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
 
-        return self.create_user(email, name, surname, password, **extra_fields)
+        return self.create_user(
+            email,
+            name,
+            surname,
+            password,
+            **extra_fields,
+        )
 
 
 def user_avatar_path(instance, filename):
@@ -40,42 +79,83 @@ def user_avatar_path(instance, filename):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
-    name = models.CharField(max_length=124)
-    surname = models.CharField(max_length=124)
-    avatar = models.ImageField(upload_to=user_avatar_path, blank=True, null=True)
-
-    phone = models.CharField(
-        max_length=12,
+    email = models.EmailField(
         unique=True,
-        validators=[
-            RegexValidator(
-                regex=r'^(\+7|8)\d{10}$',
-                message="Phone must be in format +7XXXXXXXXXX or 8XXXXXXXXXX"
-            )
-        ]
+        verbose_name="Email",
     )
 
-    github_url = models.URLField(blank=True, null=True)
-    about = models.TextField(max_length=256, blank=True)
+    name = models.CharField(
+        max_length=MAX_NAME_LENGTH,
+        verbose_name="Имя",
+    )
 
-    is_active = models.BooleanField(default=True)
-    is_staff = models.BooleanField(default=False)
+    surname = models.CharField(
+        max_length=MAX_SURNAME_LENGTH,
+        verbose_name="Фамилия",
+    )
 
-    date_joined = models.DateTimeField(default=timezone.now)
+    avatar = models.ImageField(
+        upload_to=user_avatar_path,
+        blank=True,
+        null=True,
+        verbose_name="Аватар",
+    )
 
-    objects = UserManager()
+    phone = models.CharField(
+        max_length=MAX_PHONE_LENGTH,
+        unique=True,
+        validators=[phone_validator],
+        verbose_name="Телефон",
+    )
 
-    USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = ["name", "surname"]
+    github_url = models.URLField(
+        blank=True,
+        null=True,
+        validators=[github_validator],
+        verbose_name="GitHub",
+    )
+
+    about = models.TextField(
+        max_length=MAX_ABOUT_LENGTH,
+        blank=True,
+        verbose_name="О себе",
+    )
+
+    is_active = models.BooleanField(
+        default=True,
+        verbose_name="Активен",
+    )
+
+    is_staff = models.BooleanField(
+        default=False,
+        verbose_name="Сотрудник",
+    )
+
+    date_joined = models.DateTimeField(
+        default=timezone.now,
+        verbose_name="Дата регистрации",
+    )
 
     favorites = models.ManyToManyField(
         "projects.Project",
         related_name="interested_users",
-        blank=True
+        blank=True,
+        verbose_name="Избранные проекты",
     )
-    
-    
+
+    objects = UserManager()
+
+    USERNAME_FIELD = "email"
+
+    REQUIRED_FIELDS = [
+        "name",
+        "surname",
+    ]
+
+    class Meta:
+        verbose_name = "Пользователь"
+        verbose_name_plural = "Пользователи"
+
     def save(self, *args, **kwargs):
         self.clean()
 
@@ -85,68 +165,78 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         if is_new and not self.avatar:
             self.avatar = self.generate_avatar()
+
             super().save(update_fields=["avatar"])
 
-
     def generate_avatar(self):
-        size = (200, 200)
+        image = Image.new(
+            "RGB",
+            DEFAULT_AVATAR_SIZE,
+            random.choice(AVATAR_BACKGROUND_COLORS),
+        )
 
-        colors = [
-            (52, 152, 219),
-            (46, 204, 113),
-            (155, 89, 182),
-            (241, 196, 15),
-            (230, 126, 34),
-            (231, 76, 60),
-        ]
-
-        bg_color = random.choice(colors)
-
-        image = Image.new("RGB", size, bg_color)
         draw = ImageDraw.Draw(image)
 
         letter = self.name[0].upper()
 
         try:
-            font = ImageFont.truetype("arial.ttf", 100)
-        except:
+            font = ImageFont.truetype(
+                "arial.ttf",
+                DEFAULT_AVATAR_FONT_SIZE,
+            )
+        except OSError:
             font = ImageFont.load_default()
 
         bbox = draw.textbbox((0, 0), letter, font=font)
+
         text_width = bbox[2] - bbox[0]
         text_height = bbox[3] - bbox[1]
 
         position = (
-            (size[0] - text_width) // 2,
-            (size[1] - text_height) // 2
+            (DEFAULT_AVATAR_SIZE[0] - text_width) // 2,
+            (DEFAULT_AVATAR_SIZE[1] - text_height) // 2,
         )
 
-        draw.text(position, letter, fill="white", font=font)
+        draw.text(
+            position,
+            letter,
+            fill=AVATAR_TEXT_COLOR,
+            font=font,
+        )
 
         buffer = BytesIO()
+
         image.save(buffer, format="PNG")
 
-        file_name = f"avatar_{self.email}.png"
+        filename = AVATAR_FILE_TEMPLATE.format(
+            email=self.email,
+        )
 
-        return ContentFile(buffer.getvalue(), name=file_name)
-    
+        return ContentFile(
+            buffer.getvalue(),
+            name=filename,
+        )
 
     def clean(self):
-        # нормализация
         phone = self.phone
+
+        if phone is None:
+            return
+        
         if phone.startswith("8"):
             phone = "+7" + phone[1:]
 
-        # проверка уникальности
-        qs = User.objects.filter(phone=phone)
-        if self.pk:
-            qs = qs.exclude(pk=self.pk)
+        queryset = User.objects.filter(phone=phone)
 
-        if qs.exists():
-            raise ValidationError({"phone": "Phone already exists"})
+        if self.pk:
+            queryset = queryset.exclude(pk=self.pk)
+
+        if queryset.exists():
+            raise ValidationError({
+                "phone": PHONE_EXISTS_ERROR,
+            })
 
         self.phone = phone
-        
 
     def __str__(self):
         return self.email

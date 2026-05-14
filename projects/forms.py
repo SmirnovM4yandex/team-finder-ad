@@ -1,11 +1,30 @@
 from django import forms
-from .models import Project
+
+from projects.models import Project
 
 
 class ProjectForm(forms.ModelForm):
     class Meta:
         model = Project
-        fields = ["name", "description", "github_url", "status"]
+
+        fields = [
+            "name",
+            "description",
+            "github_url",
+            "status",
+        ]
+
+        labels = {
+            "name": "Название",
+            "description": "Описание",
+            "github_url": "GitHub",
+            "status": "Статус",
+        }
+
         widgets = {
-            "status": forms.Select(choices=Project.STATUS_CHOICES)
+            "description": forms.Textarea(
+                attrs={
+                    "rows": 6,
+                }
+            ),
         }
