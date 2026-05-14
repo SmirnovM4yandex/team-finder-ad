@@ -222,7 +222,7 @@ class User(AbstractBaseUser, PermissionsMixin):
 
         if phone is None:
             return
-        
+
         if phone.startswith("8"):
             phone = "+7" + phone[1:]
 
