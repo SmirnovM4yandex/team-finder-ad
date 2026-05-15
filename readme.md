@@ -38,7 +38,7 @@ projects/   - приложение проектов
 users/      - приложение пользователей
 media/      - пользовательские файлы
 static/     - статические файлы
-````
+```
 
 ---
 
@@ -83,6 +83,14 @@ docker compose up --build
 
 ```text
 http://127.0.0.1:8000/
+```
+
+---
+
+# Загрузка данных
+
+```bash
+docker compose exec app python manage.py loaddata fixtures/test_data.json
 ```
 
 ---

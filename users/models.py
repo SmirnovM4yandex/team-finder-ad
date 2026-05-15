@@ -105,6 +105,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         max_length=MAX_PHONE_LENGTH,
         unique=True,
         validators=[phone_validator],
+        blank=True,
+        null=True,
         verbose_name="Телефон",
     )
 
@@ -220,7 +222,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     def clean(self):
         phone = self.phone
 
-        if phone is None:
+        if not phone:
+            self.phone = None
             return
 
         if phone.startswith("8"):

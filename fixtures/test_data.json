@@ -1,0 +1,157 @@
+[
+{
+  "model": "users.user",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$E0UC7pmbmRpcAUX0k00TFz$JhvNU3gMDStQwEzqrmOfoYqYq1YmvAaAAuKzZd4HJSU=",
+    "last_login": "2026-05-15T05:48:55.683Z",
+    "is_superuser": false,
+    "email": "y@y.ru",
+    "name": "test",
+    "surname": "Test",
+    "avatar": "avatars/user_1/avatar_yy.ru.png",
+    "phone": "",
+    "github_url": null,
+    "about": "",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-05-14T16:46:21.282Z",
+    "groups": [],
+    "user_permissions": [],
+    "favorites": []
+  }
+},
+{
+  "model": "users.user",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$oCvutKhOoNMWge13a5ZyEA$qDSrKwUNe2k/p73/z2F/zxcVTe65jNXjiPL9qHyHqQM=",
+    "last_login": "2026-05-15T05:47:18.542Z",
+    "is_superuser": false,
+    "email": "y1@y.ru",
+    "name": "new",
+    "surname": "user",
+    "avatar": "avatars/user_2/avatar_y1y.ru.png",
+    "phone": null,
+    "github_url": null,
+    "about": "",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-05-15T05:47:17.918Z",
+    "groups": [],
+    "user_permissions": [],
+    "favorites": [
+      2
+    ]
+  }
+},
+{
+  "model": "users.user",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$egq2t2f3CZzMmhoRwPy74z$Sc/C4wH8oPcw/V3VYVsw1b6/inytcoz3n9qIhuTCBoA=",
+    "last_login": "2026-05-15T05:49:25.238Z",
+    "is_superuser": false,
+    "email": "yandex@yandex.ru",
+    "name": "name",
+    "surname": "surname",
+    "avatar": "avatars/user_3/avatar_yandexyandex.ru.png",
+    "phone": null,
+    "github_url": null,
+    "about": "",
+    "is_active": true,
+    "is_staff": false,
+    "date_joined": "2026-05-15T05:49:24.780Z",
+    "groups": [],
+    "user_permissions": [],
+    "favorites": [
+      4,
+      3
+    ]
+  }
+},
+{
+  "model": "users.user",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$1000000$3X6kXxij11VhujXveScXgm$6yjqNWLsmWTUeeVw07TIQd/MD69XD0DWuZGysTA4vbM=",
+    "last_login": "2026-05-15T05:52:52.812Z",
+    "is_superuser": true,
+    "email": "newEmail@yandex.ru",
+    "name": "Name",
+    "surname": "Surname",
+    "avatar": "avatars/user_4/avatar_newEmailyandex.ru.png",
+    "phone": null,
+    "github_url": null,
+    "about": "",
+    "is_active": true,
+    "is_staff": true,
+    "date_joined": "2026-05-15T05:52:36.064Z",
+    "groups": [],
+    "user_permissions": [],
+    "favorites": []
+  }
+},
+{
+  "model": "projects.project",
+  "pk": 1,
+  "fields": {
+    "name": "testProject",
+    "description": "",
+    "owner": 1,
+    "created_at": "2026-05-14T16:47:00.252Z",
+    "github_url": "https://github.com/SmirnovM4yandex/team-finder-ad",
+    "status": "open",
+    "participants": [
+      1
+    ]
+  }
+},
+{
+  "model": "projects.project",
+  "pk": 2,
+  "fields": {
+    "name": "new project",
+    "description": "Other test project",
+    "owner": 1,
+    "created_at": "2026-05-14T16:47:21.698Z",
+    "github_url": "https://github.com/SmirnovM4yandex/team-finder-ad",
+    "status": "open",
+    "participants": [
+      1,
+      2,
+      3
+    ]
+  }
+},
+{
+  "model": "projects.project",
+  "pk": 3,
+  "fields": {
+    "name": "new project 2",
+    "description": "",
+    "owner": 2,
+    "created_at": "2026-05-15T05:47:57.862Z",
+    "github_url": "https://github.com/SmirnovM4yandex/team-finder-ad",
+    "status": "closed",
+    "participants": [
+      2
+    ]
+  }
+},
+{
+  "model": "projects.project",
+  "pk": 4,
+  "fields": {
+    "name": "Cool github project",
+    "description": "",
+    "owner": 3,
+    "created_at": "2026-05-15T05:49:38.624Z",
+    "github_url": "https://github.com/SmirnovM4yandex/team-finder-ad",
+    "status": "closed",
+    "participants": [
+      3
+    ]
+  }
+}
+]
