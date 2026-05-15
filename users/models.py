@@ -1,81 +1,23 @@
-from io import BytesIO
-import random
-
 from django.contrib.auth.models import (
     AbstractBaseUser,
-    BaseUserManager,
     PermissionsMixin,
 )
-from django.core.exceptions import ValidationError
-from django.core.files.base import ContentFile
 from django.db import models
 from django.utils import timezone
 
-from PIL import Image, ImageDraw, ImageFont
-
 from core.constants import (
-    AVATAR_BACKGROUND_COLORS,
-    AVATAR_FILE_TEMPLATE,
-    AVATAR_TEXT_COLOR,
-    DEFAULT_AVATAR_FONT_SIZE,
-    DEFAULT_AVATAR_SIZE,
     MAX_ABOUT_LENGTH,
     MAX_NAME_LENGTH,
     MAX_PHONE_LENGTH,
     MAX_SURNAME_LENGTH,
-    PHONE_EXISTS_ERROR,
 )
 from core.validators import github_validator, phone_validator
-
-
-class UserManager(BaseUserManager):
-    def create_user(
-        self,
-        email,
-        name,
-        surname,
-        password=None,
-        **extra_fields,
-    ):
-        if not email:
-            raise ValueError("Email обязателен")
-
-        email = self.normalize_email(email)
-
-        user = self.model(
-            email=email,
-            name=name,
-            surname=surname,
-            **extra_fields,
-        )
-
-        user.set_password(password)
-        user.save()
-
-        return user
-
-    def create_superuser(
-        self,
-        email,
-        name,
-        surname,
-        password=None,
-        **extra_fields,
-    ):
-        extra_fields.setdefault("is_staff", True)
-        extra_fields.setdefault("is_superuser", True)
-
-        return self.create_user(
-            email,
-            name,
-            surname,
-            password,
-            **extra_fields,
-        )
-
-
-def user_avatar_path(instance, filename):
-    return f"avatars/user_{instance.id}/{filename}"
+from core.utils import (
+    generate_avatar,
+    user_avatar_path,
+    validate_phone_uniqueness,
+)
+from users.managers import UserManager
 
 
 class User(AbstractBaseUser, PermissionsMixin):
@@ -166,80 +108,14 @@ class User(AbstractBaseUser, PermissionsMixin):
         super().save(*args, **kwargs)
 
         if is_new and not self.avatar:
-            self.avatar = self.generate_avatar()
+            self.avatar = generate_avatar(self)
 
-            super().save(update_fields=["avatar"])
-
-    def generate_avatar(self):
-        image = Image.new(
-            "RGB",
-            DEFAULT_AVATAR_SIZE,
-            random.choice(AVATAR_BACKGROUND_COLORS),
-        )
-
-        draw = ImageDraw.Draw(image)
-
-        letter = self.name[0].upper()
-
-        try:
-            font = ImageFont.truetype(
-                "arial.ttf",
-                DEFAULT_AVATAR_FONT_SIZE,
+            super().save(
+                update_fields=["avatar"],
             )
-        except OSError:
-            font = ImageFont.load_default()
-
-        bbox = draw.textbbox((0, 0), letter, font=font)
-
-        text_width = bbox[2] - bbox[0]
-        text_height = bbox[3] - bbox[1]
-
-        position = (
-            (DEFAULT_AVATAR_SIZE[0] - text_width) // 2,
-            (DEFAULT_AVATAR_SIZE[1] - text_height) // 2,
-        )
-
-        draw.text(
-            position,
-            letter,
-            fill=AVATAR_TEXT_COLOR,
-            font=font,
-        )
-
-        buffer = BytesIO()
-
-        image.save(buffer, format="PNG")
-
-        filename = AVATAR_FILE_TEMPLATE.format(
-            email=self.email,
-        )
-
-        return ContentFile(
-            buffer.getvalue(),
-            name=filename,
-        )
 
     def clean(self):
-        phone = self.phone
-
-        if not phone:
-            self.phone = None
-            return
-
-        if phone.startswith("8"):
-            phone = "+7" + phone[1:]
-
-        queryset = User.objects.filter(phone=phone)
-
-        if self.pk:
-            queryset = queryset.exclude(pk=self.pk)
-
-        if queryset.exists():
-            raise ValidationError({
-                "phone": PHONE_EXISTS_ERROR,
-            })
-
-        self.phone = phone
+        validate_phone_uniqueness(self)
 
     def __str__(self):
         return self.email

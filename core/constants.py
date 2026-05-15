@@ -1,9 +1,9 @@
-# User model
-
 MAX_NAME_LENGTH = 124
 MAX_SURNAME_LENGTH = 124
 MAX_PHONE_LENGTH = 12
 MAX_ABOUT_LENGTH = 256
+
+PROFILE_ABOUT_ROWS = 5
 
 PHONE_REGEX = r"^(\+7|8)\d{10}$"
 
@@ -29,10 +29,11 @@ AVATAR_TEXT_COLOR = "white"
 
 AVATAR_FILE_TEMPLATE = "avatar_{email}.png"
 
-# Project model
-
 MAX_PROJECT_NAME_LENGTH = 200
 PROJECT_DESCRIPTION_MAX_LENGTH = 5000
+MAX_PROJECT_STATUS_LENGTH = 6
+
+PROJECT_DESCRIPTION_ROWS = 6
 
 PROJECT_STATUS_OPEN = "open"
 PROJECT_STATUS_CLOSED = "closed"
@@ -41,8 +42,6 @@ PROJECT_STATUS_CHOICES = [
     (PROJECT_STATUS_OPEN, "Открыт"),
     (PROJECT_STATUS_CLOSED, "Закрыт"),
 ]
-
-# GitHub validation
 
 GITHUB_REGEX = (
     r"^https?:\/\/(www\.)?"
@@ -54,16 +53,10 @@ GITHUB_ERROR_MESSAGE = (
     "Введите корректную ссылку на GitHub"
 )
 
-# Pagination
-
 DEFAULT_PAGE_SIZE = 12
-
-# HTTP / API
 
 STATUS_OK = "ok"
 STATUS_ERROR = "error"
-
-# Messages
 
 PROJECT_CLOSED_MESSAGE = "Проект закрыт"
 
@@ -73,4 +66,20 @@ OWNER_CANNOT_LEAVE_MESSAGE = (
 
 INVALID_CREDENTIALS_MESSAGE = (
     "Неверный email или пароль"
+)
+
+USER_FILTER_OWNERS_OF_FAVORITES = (
+    "owners-of-favorite-projects"
+)
+
+USER_FILTER_OWNERS_OF_PARTICIPATING = (
+    "owners-of-participating-projects"
+)
+
+USER_FILTER_INTERESTED_IN_MY_PROJECTS = (
+    "interested-in-my-projects"
+)
+
+USER_FILTER_PARTICIPANTS_OF_MY_PROJECTS = (
+    "participants-of-my-projects"
 )

@@ -1,5 +1,6 @@
 from django import forms
 
+from core.constants import PROJECT_DESCRIPTION_ROWS
 from projects.models import Project
 
 
@@ -24,7 +25,7 @@ class ProjectForm(forms.ModelForm):
         widgets = {
             "description": forms.Textarea(
                 attrs={
-                    "rows": 6,
+                    "rows": PROJECT_DESCRIPTION_ROWS,
                 }
             ),
         }

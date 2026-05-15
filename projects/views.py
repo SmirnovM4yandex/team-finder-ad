@@ -1,7 +1,10 @@
+from http import HTTPStatus
+
 from django.conf import settings
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
+from django.shortcuts import redirect
+from django.urls import reverse
 from django.views import View
 from django.views.generic import (
     CreateView,
@@ -57,25 +60,50 @@ class ProjectDetailView(DetailView):
 
 class ToggleFavoriteView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        project = get_object_or_404(Project, pk=pk)
+        project = Project.objects.filter(
+            pk=pk,
+        ).first()
+
+        if project is None:
+            return JsonResponse(
+                {
+                    "status": STATUS_ERROR,
+                    "message": "Project not found",
+                },
+                status=HTTPStatus.NOT_FOUND,
+            )
+
         user = request.user
 
-        if user.favorites.filter(pk=project.pk).exists():
+        is_favorited = user.favorites.filter(
+            pk=project.pk,
+        ).exists()
+
+        if is_favorited:
             user.favorites.remove(project)
-            favorited = False
         else:
             user.favorites.add(project)
-            favorited = True
 
         return JsonResponse({
             "status": STATUS_OK,
-            "favorited": favorited,
+            "favorited": not is_favorited,
         })
 
 
 class ToggleParticipateView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        project = get_object_or_404(Project, pk=pk)
+        project = Project.objects.filter(
+            pk=pk,
+        ).first()
+
+        if project is None:
+            return JsonResponse(
+                {
+                    "status": STATUS_ERROR,
+                    "message": "Project not found",
+                },
+                status=HTTPStatus.NOT_FOUND,
+            )
         user = request.user
 
         if project.owner == user:
@@ -84,7 +112,7 @@ class ToggleParticipateView(LoginRequiredMixin, View):
                     "status": STATUS_ERROR,
                     "message": OWNER_CANNOT_LEAVE_MESSAGE,
                 },
-                status=400,
+                status=HTTPStatus.BAD_REQUEST,
             )
 
         if project.status == PROJECT_STATUS_CLOSED:
@@ -93,19 +121,21 @@ class ToggleParticipateView(LoginRequiredMixin, View):
                     "status": STATUS_ERROR,
                     "message": PROJECT_CLOSED_MESSAGE,
                 },
-                status=400,
+                status=HTTPStatus.BAD_REQUEST,
             )
 
-        if project.participants.filter(pk=user.pk).exists():
+        is_participant = project.participants.filter(
+            id=user.id,
+        ).exists()
+
+        if is_participant:
             project.participants.remove(user)
-            participating = False
         else:
             project.participants.add(user)
-            participating = True
 
         return JsonResponse({
             "status": STATUS_OK,
-            "participant": participating,
+            "participant": not is_participant,
         })
 
 
@@ -125,18 +155,33 @@ class FavoriteProjectsView(LoginRequiredMixin, ListView):
 
 class CompleteProjectView(LoginRequiredMixin, View):
     def post(self, request, pk):
-        project = get_object_or_404(Project, pk=pk)
+        project = Project.objects.filter(
+            pk=pk,
+        ).first()
+
+        if project is None:
+            return JsonResponse(
+                {
+                    "status": STATUS_ERROR,
+                    "message": "Project not found",
+                },
+                status=HTTPStatus.NOT_FOUND,
+            )
 
         if project.owner != request.user:
             return JsonResponse(
-                {"status": STATUS_ERROR},
-                status=403,
+                {
+                    "status": STATUS_ERROR
+                },
+                status=HTTPStatus.FORBIDDEN,
             )
 
         if project.status != PROJECT_STATUS_OPEN:
             return JsonResponse(
-                {"status": STATUS_ERROR},
-                status=400,
+                {
+                    "status": STATUS_ERROR
+                },
+                status=HTTPStatus.BAD_REQUEST,
             )
 
         project.status = PROJECT_STATUS_CLOSED
@@ -179,4 +224,9 @@ class ProjectUpdateView(LoginRequiredMixin, UpdateView):
         )
 
     def get_success_url(self):
-        return f"/projects/{self.object.pk}/"
+        return reverse(
+            "projects:project_detail",
+            kwargs={
+                "pk": self.object.pk,
+            },
+        )

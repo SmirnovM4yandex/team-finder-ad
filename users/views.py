@@ -6,6 +6,7 @@ from django.contrib.auth import (
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import redirect
+from django.urls import reverse
 from django.views import View
 from django.views.generic import (
     DetailView,
@@ -14,9 +15,15 @@ from django.views.generic import (
     UpdateView,
 )
 
-from core.constants import DEFAULT_PAGE_SIZE
+from core.constants import (
+    DEFAULT_PAGE_SIZE,
+    USER_FILTER_INTERESTED_IN_MY_PROJECTS,
+    USER_FILTER_OWNERS_OF_FAVORITES,
+    USER_FILTER_OWNERS_OF_PARTICIPATING,
+    USER_FILTER_PARTICIPANTS_OF_MY_PROJECTS,
+)
 
-from .forms import (
+from users.forms import (
     LoginForm,
     ProfileEditForm,
     RegisterForm,
@@ -78,16 +85,16 @@ class UsersListView(ListView):
             return queryset
 
         filters = {
-            "owners-of-favorite-projects": {
+            USER_FILTER_OWNERS_OF_FAVORITES: {
                 "owned_projects__interested_users": user,
             },
-            "owners-of-participating-projects": {
+            USER_FILTER_OWNERS_OF_PARTICIPATING: {
                 "owned_projects__participants": user,
             },
-            "interested-in-my-projects": {
+            USER_FILTER_INTERESTED_IN_MY_PROJECTS: {
                 "favorites__owner": user,
             },
-            "participants-of-my-projects": {
+            USER_FILTER_PARTICIPANTS_OF_MY_PROJECTS: {
                 "participated_projects__owner": user,
             },
         }
@@ -124,8 +131,11 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
         return self.request.user
 
     def get_success_url(self):
-        return (
-            f"/users/{self.request.user.pk}/"
+        return reverse(
+            "users:user_detail",
+            kwargs={
+                "pk": self.request.user.pk,
+            },
         )
 
 

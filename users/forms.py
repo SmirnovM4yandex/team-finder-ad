@@ -1,7 +1,10 @@
 from django import forms
 from django.contrib.auth import authenticate
 
-from core.constants import INVALID_CREDENTIALS_MESSAGE
+from core.constants import (
+    INVALID_CREDENTIALS_MESSAGE,
+    PROFILE_ABOUT_ROWS,
+)
 
 from users.models import User
 
@@ -85,7 +88,7 @@ class ProfileEditForm(forms.ModelForm):
         widgets = {
             "about": forms.Textarea(
                 attrs={
-                    "rows": 5,
+                    "rows": PROFILE_ABOUT_ROWS,
                 }
             ),
         }

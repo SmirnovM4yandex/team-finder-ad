@@ -6,6 +6,7 @@ from core.constants import (
     PROJECT_DESCRIPTION_MAX_LENGTH,
     PROJECT_STATUS_CHOICES,
     PROJECT_STATUS_OPEN,
+    MAX_PROJECT_STATUS_LENGTH
 )
 from core.validators import github_validator
 
@@ -45,7 +46,7 @@ class Project(models.Model):
     )
 
     status = models.CharField(
-        max_length=6,
+        max_length=MAX_PROJECT_STATUS_LENGTH,
         choices=PROJECT_STATUS_CHOICES,
         default=PROJECT_STATUS_OPEN,
         verbose_name="Статус",
